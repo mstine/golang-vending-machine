@@ -60,7 +60,7 @@ func (v *VendingMachine) Service() {
 	v.items["C"].count = 50	
 }
 
-func (v *VendingMachine) CoinReturn() (string, error) {
+func (v *VendingMachine) CoinReturn() string {
 	e := v.coinsInserted.Front();
 	coinReturn := "";
 	if e != nil {
@@ -74,7 +74,7 @@ func (v *VendingMachine) CoinReturn() (string, error) {
 		}		
 		v.coinsInserted = list.New()
 	}
-	return coinReturn, nil
+	return coinReturn
 }
 
 func (v *VendingMachine) Insert(coin string) {
