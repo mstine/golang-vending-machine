@@ -16,6 +16,7 @@ type VendingMachine struct {
 	items map[string]*Item
 	coins map[string]*Coin
 	coinsInserted []*Coin
+	bank map[*Coin]int
 }
 
 func NewVendingMachine() *VendingMachine {
@@ -34,6 +35,12 @@ func NewVendingMachine() *VendingMachine {
 
 	v.coinsInserted = make([]*Coin, 0)
 
+	v.bank = make(map[*Coin]int)
+	v.bank[v.coins["N"]] = 0
+	v.bank[v.coins["D"]] = 0
+	v.bank[v.coins["Q"]] = 0
+	v.bank[v.coins["DD"]] = 0
+
 	return v
 }
 
@@ -41,7 +48,7 @@ func (v *VendingMachine) Get(item string) (string, error) {
 	if v.items[item].count > 0 {
 		if v.AmountInserted() == v.items[item].price {
 			v.items[item].count--
-			v.coinsInserted = make([]*Coin, 0)
+			v.addAmountInsertedToBank()
 			return item, nil
 		} else {
 			return "", fmt.Errorf("You didn't insert enough money for %v! Inserted: %v, Required: %v", item, v.AmountInserted(), v.items[item].price)
@@ -54,7 +61,11 @@ func (v *VendingMachine) Get(item string) (string, error) {
 func (v *VendingMachine) Service() {
 	v.items["A"].count = 50
 	v.items["B"].count = 50
-	v.items["C"].count = 50	
+	v.items["C"].count = 50
+
+	v.bank[v.coins["N"]] = 50
+	v.bank[v.coins["D"]] = 50
+	v.bank[v.coins["Q"]] = 50	
 }
 
 func (v *VendingMachine) CoinReturn() string {
@@ -78,4 +89,11 @@ func (v *VendingMachine) AmountInserted() int {
 		amount += coin.value
 	}	
 	return amount
+}
+
+func (v *VendingMachine) addAmountInsertedToBank() {
+	for _, coin := range v.coinsInserted {
+		v.bank[v.coins[coin.label]]++
+	}
+	v.coinsInserted = make([]*Coin, 0)
 }
