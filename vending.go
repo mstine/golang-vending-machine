@@ -1,6 +1,6 @@
 package vending
 
-import "container/list"
+import "fmt"
 
 type Item struct {
 	price int
@@ -15,11 +15,7 @@ type Coin struct {
 type VendingMachine struct {
 	items map[string]*Item
 	coins map[string]*Coin
-	coinsInserted *list.List
-}
-
-type VendingMachineError struct {
-	Message string
+	coinsInserted []*Coin
 }
 
 func NewVendingMachine() *VendingMachine {
@@ -36,21 +32,22 @@ func NewVendingMachine() *VendingMachine {
 	v.coins["Q"] = &Coin{25,"Q"}
 	v.coins["DD"] = &Coin{100,"DD"}
 
-	v.coinsInserted = list.New()
+	v.coinsInserted = make([]*Coin, 0)
 
 	return v
 }
 
-func (e *VendingMachineError) Error() string {
-	return e.Message
-}
-
 func (v *VendingMachine) Get(item string) (string, error) {
 	if v.items[item].count > 0 {
-		v.items[item].count--
-		return item, nil
+		if v.AmountInserted() == v.items[item].price {
+			v.items[item].count--
+			v.coinsInserted = make([]*Coin, 0)
+			return item, nil
+		} else {
+			return "", fmt.Errorf("You didn't insert enough money for %v! Inserted: %v, Required: %v", item, v.AmountInserted(), v.items[item].price)
+		}
 	} else {
-		return "", &VendingMachineError{"No " + item + " items available!"}
+		return "", fmt.Errorf("No %v items available!", item)
 	}
 }
 
@@ -61,30 +58,24 @@ func (v *VendingMachine) Service() {
 }
 
 func (v *VendingMachine) CoinReturn() string {
-	e := v.coinsInserted.Front();
 	coinReturn := "";
-	if e != nil {
-		coinReturn += e.Value.(*Coin).label
-		for e != nil {
-			e = e.Next()
-			if e != nil {
-				coinReturn += ", "	
-				coinReturn += e.Value.(*Coin).label	
-			}
-		}		
-		v.coinsInserted = list.New()
-	}
+	for i, coin := range v.coinsInserted {
+		coinReturn += coin.label
+		if i < len(v.coinsInserted) - 1 {
+			coinReturn += ", "
+		}
+	}	
 	return coinReturn
 }
 
 func (v *VendingMachine) Insert(coin string) {
-	v.coinsInserted.PushBack(v.coins[coin])
+	v.coinsInserted = append(v.coinsInserted, v.coins[coin])
 }
 
 func (v *VendingMachine) AmountInserted() int {
 	amount := 0
-	for e := v.coinsInserted.Front(); e != nil; e = e.Next() {
-		amount += e.Value.(*Coin).value
-	}
+	for _, coin := range v.coinsInserted {
+		amount += coin.value
+	}	
 	return amount
 }

@@ -4,6 +4,10 @@ import "testing"
 
 func TestBuyFromAEmptyMachine(t *testing.T) {
 	v := NewVendingMachine()
+	v.Insert("Q")
+	v.Insert("Q")
+	v.Insert("D")
+	v.Insert("N")
 	result, error := v.Get("A")
 	
 	if result == "A" {
@@ -17,6 +21,7 @@ func TestBuyFromAEmptyMachine(t *testing.T) {
 
 func TestBuyFromBEmptyMachine(t *testing.T) {
 	v := NewVendingMachine()
+	v.Insert("DD")
 	result, error := v.Get("B")
 	
 	if result == "B" {
@@ -30,6 +35,9 @@ func TestBuyFromBEmptyMachine(t *testing.T) {
 
 func TestBuyFromCEmptyMachine(t *testing.T) {
 	v := NewVendingMachine()
+	v.Insert("DD")
+	v.Insert("Q")
+	v.Insert("Q")
 	result, error := v.Get("C")
 	
 	if result == "C" {
@@ -50,9 +58,40 @@ func TestServiceMachine(t *testing.T) {
 	}
 }
 
+func TestBuyAWithNoMoney(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+	_, error := v.Get("A")
+	if error.Error() != "You didn't insert enough money for A! Inserted: 0, Required: 65" {
+		t.Errorf("Improper error message!")
+	}	
+}
+
+func TestBuyBWithNoMoney(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+	_, error := v.Get("B")
+	if error.Error() != "You didn't insert enough money for B! Inserted: 0, Required: 100" {
+		t.Errorf("Improper error message!")
+	}	
+}
+
+func TestBuyCWithNoMoney(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+	_, error := v.Get("C")
+	if error.Error() != "You didn't insert enough money for C! Inserted: 0, Required: 150" {
+		t.Errorf("Improper error message!")
+	}	
+}
+
 func TestBuyAFromServicedMachine(t *testing.T) {
 	v := NewVendingMachine()
 	v.Service()
+	v.Insert("Q")
+	v.Insert("Q")
+	v.Insert("D")
+	v.Insert("N")
 	result, _ := v.Get("A")
 	if result != "A" {
 		t.Errorf("Machine should have returned an A!")
@@ -65,6 +104,7 @@ func TestBuyAFromServicedMachine(t *testing.T) {
 func TestBuyBFromServicedMachine(t *testing.T) {
 	v := NewVendingMachine()
 	v.Service()
+	v.Insert("DD")
 	result, _ := v.Get("B")
 	if result != "B" {
 		t.Errorf("Machine should have returned a B!")
@@ -77,6 +117,9 @@ func TestBuyBFromServicedMachine(t *testing.T) {
 func TestBuyCFromServicedMachine(t *testing.T) {
 	v := NewVendingMachine()
 	v.Service()
+	v.Insert("DD")
+	v.Insert("Q")
+	v.Insert("Q")
 	result, _ := v.Get("C")
 	if result != "C" {
 		t.Errorf("Machine should have returned a C!")
