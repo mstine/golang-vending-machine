@@ -50,6 +50,11 @@ func (v *VendingMachine) Get(item string) (string, error) {
 			v.items[item].count--
 			v.addAmountInsertedToBank()
 			return item, nil
+	    } else if v.AmountInserted() > v.items[item].price {
+	    	changeDue := v.AmountInserted() - v.items[item].price
+	    	v.addAmountInsertedToBank()
+			v.items[item].count--	    	
+			return "A" + v.returnChange(changeDue), nil    	
 		} else {
 			return "", fmt.Errorf("You didn't insert enough money for %v! Inserted: %v, Required: %v", item, v.AmountInserted(), v.items[item].price)
 		}
@@ -96,4 +101,32 @@ func (v *VendingMachine) addAmountInsertedToBank() {
 		v.bank[v.coins[coin.label]]++
 	}
 	v.coinsInserted = make([]*Coin, 0)
+}
+
+func (v *VendingMachine) returnChange(changeDue int) string {
+	coinReturn := ""
+
+	quarters := changeDue / v.coins["Q"].value
+	for i := 1; i <= quarters; i++ {
+		coinReturn += ", Q"		
+	}
+
+	changeDue -= quarters * v.coins["Q"].value
+
+	if changeDue == 0 {
+		return coinReturn
+	}
+
+	dimes := changeDue / v.coins["D"].value
+	for i := 1; i <= dimes; i++ {
+		coinReturn += ", D"		
+	}
+
+	changeDue -= dimes * v.coins["D"].value
+
+	if changeDue == 0 {
+		return coinReturn
+	}
+
+	return "ERROR"
 }

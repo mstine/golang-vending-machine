@@ -189,3 +189,15 @@ func TestSomeCoins(t *testing.T) {
 		t.Errorf("CoinReturn should be 'N, Q, DD, D, N, D', but was: '" + result +"'");
 	}
 }
+
+func TestBuyAWithTooMuchMoney(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+	v.Insert("DD")
+
+	result, _ := v.Get("A")
+
+	if result != "A, Q, D" {
+		t.Errorf("Result should be 'A, Q, D' but was %v", result)
+	}
+}
