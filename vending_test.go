@@ -148,7 +148,7 @@ func TestInsertNickel(t *testing.T) {
 func TestCoinReturnWithSingleNickle(t *testing.T) {
 	v := NewVendingMachine()
 	v.Insert("N")
-	result := v.CoinReturn();
+	result := v.CoinReturn()
 	if result != "N" {
 		t.Errorf("CoinReturn should be 'N' after inserting single nickle!")
 	}
@@ -163,10 +163,10 @@ func TestTwoNickles(t *testing.T) {
 		t.Errorf("Inserting two nickles should result in 10 cents total inserted!")
 	}
 
-	result := v.CoinReturn();
+	result := v.CoinReturn()
 
 	if result != "N, N" {
-		t.Errorf("CoinReturn should be 'N, N' after inserting two nickles. Was: '" + result + "'");
+		t.Errorf("CoinReturn should be 'N, N' after inserting two nickles. Was: '%v'", result)
 	}
 }
 
@@ -183,10 +183,10 @@ func TestSomeCoins(t *testing.T) {
 		t.Errorf("Amoint should be 155 cents!")
 	}
 
-	result := v.CoinReturn();
+	result := v.CoinReturn()
 
 	if result != "N, Q, DD, D, N, D" {
-		t.Errorf("CoinReturn should be 'N, Q, DD, D, N, D', but was: '" + result +"'");
+		t.Errorf("CoinReturn should be 'N, Q, DD, D, N, D', but was: '%v'", result)
 	}
 }
 

@@ -74,7 +74,7 @@ func (v *VendingMachine) Service() {
 }
 
 func (v *VendingMachine) CoinReturn() string {
-	coinReturn := "";
+	coinReturn := ""
 	for i, coin := range v.coinsInserted {
 		coinReturn += coin.label
 		if i < len(v.coinsInserted) - 1 {
