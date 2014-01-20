@@ -4,10 +4,10 @@ import "testing"
 
 func TestBuyFromAEmptyMachine(t *testing.T) {
 	v := NewVendingMachine()
-	v.Insert("Q")
-	v.Insert("Q")
-	v.Insert("D")
-	v.Insert("N")
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
+	v.Insert(DIME)
+	v.Insert(NICKLE)
 	result, error := v.Get("A")
 	
 	if result == "A" {
@@ -21,7 +21,7 @@ func TestBuyFromAEmptyMachine(t *testing.T) {
 
 func TestBuyFromBEmptyMachine(t *testing.T) {
 	v := NewVendingMachine()
-	v.Insert("DD")
+	v.Insert(DOLLAR)
 	result, error := v.Get("B")
 	
 	if result == "B" {
@@ -35,9 +35,9 @@ func TestBuyFromBEmptyMachine(t *testing.T) {
 
 func TestBuyFromCEmptyMachine(t *testing.T) {
 	v := NewVendingMachine()
-	v.Insert("DD")
-	v.Insert("Q")
-	v.Insert("Q")
+	v.Insert(DOLLAR)
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
 	result, error := v.Get("C")
 	
 	if result == "C" {
@@ -88,10 +88,10 @@ func TestBuyCWithNoMoney(t *testing.T) {
 func TestBuyAFromServicedMachine(t *testing.T) {
 	v := NewVendingMachine()
 	v.Service()
-	v.Insert("Q")
-	v.Insert("Q")
-	v.Insert("D")
-	v.Insert("N")
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
+	v.Insert(DIME)
+	v.Insert(NICKLE)
 	result, _ := v.Get("A")
 	if result != "A" {
 		t.Errorf("Machine should have returned an A!")
@@ -104,7 +104,7 @@ func TestBuyAFromServicedMachine(t *testing.T) {
 func TestBuyBFromServicedMachine(t *testing.T) {
 	v := NewVendingMachine()
 	v.Service()
-	v.Insert("DD")
+	v.Insert(DOLLAR)
 	result, _ := v.Get("B")
 	if result != "B" {
 		t.Errorf("Machine should have returned a B!")
@@ -117,9 +117,9 @@ func TestBuyBFromServicedMachine(t *testing.T) {
 func TestBuyCFromServicedMachine(t *testing.T) {
 	v := NewVendingMachine()
 	v.Service()
-	v.Insert("DD")
-	v.Insert("Q")
-	v.Insert("Q")
+	v.Insert(DOLLAR)
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
 	result, _ := v.Get("C")
 	if result != "C" {
 		t.Errorf("Machine should have returned a C!")
@@ -139,7 +139,7 @@ func TestEmptyCoinReturn(t *testing.T) {
 
 func TestInsertNickel(t *testing.T) {
 	v := NewVendingMachine()
-	v.Insert("N")
+	v.Insert(NICKLE)
 	if v.AmountInserted() != 5 {
 		t.Errorf("Inserting a single nickle should result in 5 cents total inserted!")
 	}
@@ -147,7 +147,7 @@ func TestInsertNickel(t *testing.T) {
 
 func TestCoinReturnWithSingleNickle(t *testing.T) {
 	v := NewVendingMachine()
-	v.Insert("N")
+	v.Insert(NICKLE)
 	result := v.CoinReturn()
 	if result != "N" {
 		t.Errorf("CoinReturn should be 'N' after inserting single nickle!")
@@ -156,8 +156,8 @@ func TestCoinReturnWithSingleNickle(t *testing.T) {
 
 func TestTwoNickles(t *testing.T) {
 	v := NewVendingMachine()
-	v.Insert("N")
-	v.Insert("N")
+	v.Insert(NICKLE)
+	v.Insert(NICKLE)
 
 	if v.AmountInserted() != 10 {
 		t.Errorf("Inserting two nickles should result in 10 cents total inserted!")
@@ -172,12 +172,12 @@ func TestTwoNickles(t *testing.T) {
 
 func TestSomeCoins(t *testing.T) {
 	v := NewVendingMachine()
-	v.Insert("N")
-	v.Insert("Q")
-	v.Insert("DD")
-	v.Insert("D")
-	v.Insert("N")
-	v.Insert("D")
+	v.Insert(NICKLE)
+	v.Insert(QUARTER)
+	v.Insert(DOLLAR)
+	v.Insert(DIME)
+	v.Insert(NICKLE)
+	v.Insert(DIME)
 
 	if v.AmountInserted() != 155 {
 		t.Errorf("Amoint should be 155 cents!")
@@ -190,10 +190,84 @@ func TestSomeCoins(t *testing.T) {
 	}
 }
 
+func TestMakingChangeReducesBank(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+
+	if (v.bank[v.coins[NICKLE]] != 50) {
+		t.Errorf("Newly serviced machine should have 50 nickles!");
+	}
+
+	if (v.bank[v.coins[DIME]] != 50) {
+		t.Errorf("Newly serviced machine should have 50 dimes!");
+	}
+
+	if (v.bank[v.coins[QUARTER]] != 50) {
+		t.Errorf("Newly serviced machine should have 50 quarters!");
+	}
+
+	if (v.bank[v.coins[DOLLAR]] != 0) {
+		t.Errorf("Newly serviced machine should have 0 dollars!");
+	}
+
+	v.Insert(DOLLAR)
+
+	result, _ := v.Get("A")
+
+	if result != "A, Q, D" {
+		t.Errorf("Result should be 'A, Q, D' but was %v", result)
+	}
+
+	if (v.bank[v.coins[NICKLE]] != 50) {
+		t.Errorf("After this purchase machine should have 50 nickles!");
+	}
+
+	if (v.bank[v.coins[DIME]] != 49) {
+		t.Errorf("After this purchase machine should have 49 dimes!");
+	}
+
+	if (v.bank[v.coins[QUARTER]] != 49) {
+		t.Errorf("After this purchase machine should have 49 quarters!");
+	}
+
+	if (v.bank[v.coins[DOLLAR]] != 1) {
+		t.Errorf("After this purchase machine should have 1 dollar!");
+	}
+}
+
+// Vending Machine Spec Tests
+
+func TestBuyBWithExactChange(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
+
+	result, _ := v.Get("B")
+
+	if result != "B" {
+		t.Errorf("Result should be 'B' but was %v", result)	
+	}	
+}
+
+func TestCoinReturn(t *testing.T) {
+	v := NewVendingMachine()
+	v.Insert(QUARTER)
+	v.Insert(QUARTER)
+
+	result := v.CoinReturn()
+
+	if result != "Q, Q" {
+		t.Errorf("Result should be 'Q' but was %v", result)	
+	}	
+}
+
 func TestBuyAWithTooMuchMoney(t *testing.T) {
 	v := NewVendingMachine()
 	v.Service()
-	v.Insert("DD")
+	v.Insert(DOLLAR)
 
 	result, _ := v.Get("A")
 

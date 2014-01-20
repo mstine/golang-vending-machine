@@ -2,19 +2,27 @@ package vending
 
 import "fmt"
 
+const (
+	NICKLE = iota
+	DIME = iota
+	QUARTER = iota
+	DOLLAR = iota
+)
+
 type Item struct {
 	price int
 	count int
 }
 
 type Coin struct {
+	key int
 	value int
 	label string
 }
 
 type VendingMachine struct {
 	items map[string]*Item
-	coins map[string]*Coin
+	coins map[int]*Coin
 	coinsInserted []*Coin
 	bank map[*Coin]int
 }
@@ -27,19 +35,19 @@ func NewVendingMachine() *VendingMachine {
 	v.items["B"] = &Item{100,0}
 	v.items["C"] = &Item{150,0}
 
-	v.coins = make(map[string]*Coin)
-	v.coins["N"] = &Coin{5,"N"}
-	v.coins["D"] = &Coin{10,"D"}
-	v.coins["Q"] = &Coin{25,"Q"}
-	v.coins["DD"] = &Coin{100,"DD"}
+	v.coins = make(map[int]*Coin)
+	v.coins[NICKLE] = &Coin{NICKLE, 5,"N"}
+	v.coins[DIME] = &Coin{DIME, 10,"D"}
+	v.coins[QUARTER] = &Coin{QUARTER, 25,"Q"}
+	v.coins[DOLLAR] = &Coin{DOLLAR, 100,"DD"}
 
 	v.coinsInserted = make([]*Coin, 0)
 
 	v.bank = make(map[*Coin]int)
-	v.bank[v.coins["N"]] = 0
-	v.bank[v.coins["D"]] = 0
-	v.bank[v.coins["Q"]] = 0
-	v.bank[v.coins["DD"]] = 0
+	v.bank[v.coins[NICKLE]] = 0
+	v.bank[v.coins[DIME]] = 0
+	v.bank[v.coins[QUARTER]] = 0
+	v.bank[v.coins[DOLLAR]] = 0
 
 	return v
 }
@@ -53,8 +61,12 @@ func (v *VendingMachine) Get(item string) (string, error) {
 	    } else if v.AmountInserted() > v.items[item].price {
 	    	changeDue := v.AmountInserted() - v.items[item].price
 	    	v.addAmountInsertedToBank()
-			v.items[item].count--	    	
-			return "A" + v.returnChange(changeDue), nil    	
+			v.items[item].count--	
+			change, error := v.returnChange(changeDue)
+			if error != nil {
+				return "", error
+			}    	
+			return "A" + change, nil    	
 		} else {
 			return "", fmt.Errorf("You didn't insert enough money for %v! Inserted: %v, Required: %v", item, v.AmountInserted(), v.items[item].price)
 		}
@@ -68,9 +80,9 @@ func (v *VendingMachine) Service() {
 	v.items["B"].count = 50
 	v.items["C"].count = 50
 
-	v.bank[v.coins["N"]] = 50
-	v.bank[v.coins["D"]] = 50
-	v.bank[v.coins["Q"]] = 50	
+	v.bank[v.coins[NICKLE]] = 50
+	v.bank[v.coins[DIME]] = 50
+	v.bank[v.coins[QUARTER]] = 50	
 }
 
 func (v *VendingMachine) CoinReturn() string {
@@ -84,7 +96,7 @@ func (v *VendingMachine) CoinReturn() string {
 	return coinReturn
 }
 
-func (v *VendingMachine) Insert(coin string) {
+func (v *VendingMachine) Insert(coin int) {
 	v.coinsInserted = append(v.coinsInserted, v.coins[coin])
 }
 
@@ -98,35 +110,29 @@ func (v *VendingMachine) AmountInserted() int {
 
 func (v *VendingMachine) addAmountInsertedToBank() {
 	for _, coin := range v.coinsInserted {
-		v.bank[v.coins[coin.label]]++
+		v.bank[v.coins[coin.key]]++
 	}
 	v.coinsInserted = make([]*Coin, 0)
 }
 
-func (v *VendingMachine) returnChange(changeDue int) string {
+func (v *VendingMachine) returnChange(changeDue int) (string, error) {
 	coinReturn := ""
 
-	quarters := changeDue / v.coins["Q"].value
-	for i := 1; i <= quarters; i++ {
-		coinReturn += ", Q"		
-	}
+	for i := QUARTER; i >= NICKLE; i-- {
+		coins := changeDue / v.coins[i].value
+		
+		for j := 1; j <= coins; j++ {
+			coinReturn += ", " + v.coins[i].label		
+		}
+		
+		changeDue -= coins * v.coins[i].value
+		
+		v.bank[v.coins[i]] -= coins
 
-	changeDue -= quarters * v.coins["Q"].value
+		if changeDue == 0 {
+			return coinReturn, nil
+		}
+	}	
 
-	if changeDue == 0 {
-		return coinReturn
-	}
-
-	dimes := changeDue / v.coins["D"].value
-	for i := 1; i <= dimes; i++ {
-		coinReturn += ", D"		
-	}
-
-	changeDue -= dimes * v.coins["D"].value
-
-	if changeDue == 0 {
-		return coinReturn
-	}
-
-	return "ERROR"
+	return "", fmt.Errorf("Can't make change!")
 }
