@@ -235,6 +235,41 @@ func TestMakingChangeReducesBank(t *testing.T) {
 	}
 }
 
+func TestMakingChangeShouldNotGoNegative(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+
+	v.bank[v.coins[NICKLE]] = 0
+	v.bank[v.coins[DIME]] = 0
+	v.bank[v.coins[QUARTER]] = 0
+
+	v.Insert(DOLLAR)
+
+	_, error := v.Get("A")
+
+	if (error == nil) {
+		t.Errorf("Should be an error!");
+	}
+}
+
+func TestMakingChangeWhenQuarterNotAvailable(t *testing.T) {
+	v := NewVendingMachine()
+	v.Service()
+
+	v.bank[v.coins[QUARTER]] = 0
+
+	v.Insert(DOLLAR)
+	result, error := v.Get("A")
+
+	if error != nil {
+		t.Errorf("Error: %v", error)
+	}
+
+	if result != "A, D, D, D, N" {
+		t.Errorf("Result should be 'A, D, D, D, N but was '%v'", result)
+	}
+}
+
 // Vending Machine Spec Tests
 
 func TestBuyBWithExactChange(t *testing.T) {
@@ -269,7 +304,7 @@ func TestBuyAWithTooMuchMoney(t *testing.T) {
 	v.Service()
 	v.Insert(DOLLAR)
 
-	result, _ := v.Get("A")
+	result, _ := v.Get("A")	
 
 	if result != "A, Q, D" {
 		t.Errorf("Result should be 'A, Q, D' but was %v", result)

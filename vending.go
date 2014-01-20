@@ -118,16 +118,22 @@ func (v *VendingMachine) addAmountInsertedToBank() {
 func (v *VendingMachine) returnChange(changeDue int) (string, error) {
 	coinReturn := ""
 
+	CoinLoop:
 	for i := QUARTER; i >= NICKLE; i-- {
 		coins := changeDue / v.coins[i].value
+
+		if v.bank[v.coins[i]] - coins < 0 {
+			continue CoinLoop
+		} else {
+			v.bank[v.coins[i]] -= coins
+		}
 		
 		for j := 1; j <= coins; j++ {
 			coinReturn += ", " + v.coins[i].label		
 		}
 		
 		changeDue -= coins * v.coins[i].value
-		
-		v.bank[v.coins[i]] -= coins
+
 
 		if changeDue == 0 {
 			return coinReturn, nil
